@@ -1,6 +1,8 @@
 # maple.nvim
 
 A simple Neovim plugin for managing project based notes
+![image](https://github.com/user-attachments/assets/62cb554c-ac8c-4973-a20d-76bf7440a0d2)
+
 
 ## Installation
 
