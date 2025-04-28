@@ -17,30 +17,30 @@ end
 function M.render_notes(notes_data)
     local buf = window.get_buf()
     local win = window.get_win()
-    
+
     -- Ensure namespace is created
     ensure_namespace()
-    
+
     -- Clear any existing extmarks
     if footer_extmark_id then
         pcall(api.nvim_buf_del_extmark, buf, footer_ns_id, footer_extmark_id)
         footer_extmark_id = nil
     end
-    
+
     local lines = {}
     local content = notes_data.content or ""
-    
+
     -- Split content into lines
     if content and content ~= "" then
         for line in content:gmatch("[^\r\n]+") do
             table.insert(lines, line)
         end
     end
-    
+
     if #lines == 0 then
         table.insert(lines, "")
     end
-    
+
     -- Create footer text
     local mode_text = ""
     if config.options.notes_mode == "global" then
@@ -48,26 +48,31 @@ function M.render_notes(notes_data)
     else
         mode_text = "Project Notes"
     end
+
+    local footer_text = ""
     
-    local legend_items = {
-        string.format("[%s] Switch Mode", 'm'),
-        string.format("[%s] Close", 'q')
-    }
+    -- Only show legend if enabled in config
+    if config.options.show_legend ~= false then
+        local legend_items = {
+            string.format("[%s] Switch Mode", 'm'),
+            string.format("[%s] Close", 'q')
+        }
+        footer_text = "  " .. table.concat(legend_items, "  ") .. "\n"
+    end
     
-    local footer_text = "  " .. table.concat(legend_items, "  ") .. "\n" .. 
-                        string.format("  Mode: %s", mode_text)
-    
+    footer_text = footer_text .. string.format("  Mode: %s", mode_text)
+
     -- Fill the buffer with the content
     api.nvim_buf_set_option(buf, 'modifiable', true)
     api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-    
+
     -- Get the last line index
     local last_line = math.max(0, api.nvim_buf_line_count(buf) - 1)
-    
+
     -- Set a virtual text at the bottom that appears to float
     footer_extmark_id = api.nvim_buf_set_extmark(buf, footer_ns_id, last_line, 0, {
         virt_lines = {
-            { { "", "" } },  -- Empty line as separator
+            { { "", "" } }, -- Empty line as separator
             { { footer_text:match("^(.-)$"), "Comment" } },
         },
         virt_text_pos = "overlay",
@@ -75,7 +80,7 @@ function M.render_notes(notes_data)
         priority = 100,
         right_gravity = false,
     })
-    
+
     -- Set the window for editing
     if win and api.nvim_win_is_valid(win) then
         -- Setup scrolloff to ensure footer is always visible
@@ -87,19 +92,19 @@ end
 function M.get_notes_content()
     local buf = window.get_buf()
     local win = window.get_win()
-    
+
     if not api.nvim_win_is_valid(win) then
         return ""
     end
-    
+
     -- Get all lines from the buffer - no need to handle footer as it's virtual
     local lines = api.nvim_buf_get_lines(buf, 0, -1, false)
-    
+
     -- Remove trailing empty lines
     while #lines > 0 and lines[#lines] == "" do
         table.remove(lines)
     end
-    
+
     return table.concat(lines, "\n")
 end
 

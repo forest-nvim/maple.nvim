@@ -9,6 +9,7 @@ M.defaults = {
     title = ' maple ',
     title_pos = 'center',
     winblend = 10, -- Window transparency (0-100)
+    show_legend = false, -- Whether to show keybind legend in the UI
 
     -- Storage
     storage_path = vim.fn.stdpath('data') .. '/maple',
