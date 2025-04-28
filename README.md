@@ -31,3 +31,9 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
   end
 }
 ```
+
+## Features
+- Project Based notes (Based on git repository, falls back to directory of folder)
+- Global notes that persist no matter what directory you are in.
+
+Contributions and Ideas are always welcome!
