@@ -13,27 +13,27 @@ function M.setup(user_config)
     
     -- Set up default keybind if enabled
     if config.options.set_default_keybind ~= false then
-        vim.keymap.set('n', '<leader>m', '<cmd>MapleTodo<CR>', {
+        vim.keymap.set('n', '<leader>m', '<cmd>MapleNotes<CR>', {
             noremap = true,
             silent = true,
-            desc = 'Open maple Todo List'
+            desc = 'Open Maple Notes'
         })
     end
 end
 
--- Open the todo window
-function M.open_todo()
+-- Open the notes window
+function M.open_notes()
     -- Make sure config is initialized if M.setup wasn't called
     if not config.options or not next(config.options) then
         config.setup({})
     end
     
-    local todos = storage.load_todos()
+    local notes = storage.load_notes()
     window.create_buf()
     window.create_win()
     api.nvim_buf_set_option(window.get_buf(), 'modifiable', true)
-    renderer.render_todos(todos)
-    keymaps.setup_keymaps(todos)
+    renderer.render_notes(notes)
+    keymaps.setup_keymaps(notes)
 end
 
 return M

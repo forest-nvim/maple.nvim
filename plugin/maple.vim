@@ -6,4 +6,4 @@ let g:loaded_maple = 1
 " Initialize with default configuration
 lua require('maple').setup({})
 
-command! MapleTodo lua require('maple').open_todo()
+command! MapleNotes lua require('maple').open_notes()

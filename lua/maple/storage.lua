@@ -16,24 +16,12 @@ local function get_storage()
 end
 
 -- Forward all function calls to the storage backend
-function M.load_todos()
-    return get_storage().load_todos()
+function M.load_notes()
+    return get_storage().load_notes()
 end
 
-function M.save_todos(todos)
-    return get_storage().save_todos(todos)
-end
-
-function M.add_todo(text, completed)
-    return get_storage().add_todo(text, completed)
-end
-
-function M.toggle_todo(id)
-    return get_storage().toggle_todo(id)
-end
-
-function M.delete_todo(id)
-    return get_storage().delete_todo(id)
+function M.save_notes(content)
+    return get_storage().save_notes(content)
 end
 
 function M.close()

@@ -13,18 +13,14 @@ M.defaults = {
     -- Storage
     storage_path = vim.fn.stdpath('data') .. '/maple',
 
-    -- Todo management
-    todo_mode = "project",                -- "global" or "project"
-    use_project_specific_todos = true, -- Store todos by project
+    -- Notes management
+    notes_mode = "project",                -- "global" or "project"
+    use_project_specific_notes = true, -- Store notes by project
 
     -- Keymaps
     keymaps = {
-        add = 'a',
-        toggle = 'x',
-        delete = 'd',
         close = { 'q', 'Esc' },
         switch_mode = 'm', -- Toggle between global and project view
-        add_note = 'n' -- Add note to current todo
     },
 
     -- Global keybind
