@@ -1,4 +1,4 @@
-#maple.nvim
+# maple.nvim
 
 A simple Neovim plugin for managing todo lists in a popup window.
 
