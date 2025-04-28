@@ -49,6 +49,9 @@ function M.render_notes(notes_data)
         mode_text = "Project Notes"
     end
 
+    -- Update window title
+    window.update_title()
+
     local footer_text = ""
     
     -- Only show legend if enabled in config
