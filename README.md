@@ -1,6 +1,6 @@
 # maple.nvim
 
-A simple Neovim plugin for managing todo lists
+A simple Neovim plugin for managing project based notes
 
 ## Installation
 
