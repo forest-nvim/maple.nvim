@@ -8,14 +8,14 @@ M.defaults = {
     border = 'rounded', -- Border style ('none', 'single', 'double', 'rounded', etc.)
     title = ' maple ',
     title_pos = 'center',
-    winblend = 10, -- Window transparency (0-100)
+    winblend = 10,       -- Window transparency (0-100)
     show_legend = false, -- Whether to show keybind legend in the UI
 
     -- Storage
     storage_path = vim.fn.stdpath('data') .. '/maple',
 
     -- Notes management
-    notes_mode = "project",                -- "global" or "project"
+    notes_mode = "project",            -- "global" or "project"
     use_project_specific_notes = true, -- Store notes by project
 
     -- Keymaps

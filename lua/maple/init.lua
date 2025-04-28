@@ -16,7 +16,7 @@ function M.setup(user_config)
         vim.keymap.set('n', '<leader>m', '<cmd>MapleNotes<CR>', {
             noremap = true,
             silent = true,
-            desc = 'Open Maple Notes'
+            desc = 'Toggle Maple Notes'
         })
     end
 end
@@ -26,6 +26,16 @@ function M.open_notes()
     -- Make sure config is initialized if M.setup wasn't called
     if not config.options or not next(config.options) then
         config.setup({})
+    end
+    
+    -- If window is already open, close it (toggle behavior)
+    local win = window.get_win()
+    if win and api.nvim_win_is_valid(win) then
+        -- Save notes before closing
+        local content = renderer.get_notes_content()
+        storage.save_notes({ content = content })
+        window.close_win()
+        return
     end
     
     local notes = storage.load_notes()

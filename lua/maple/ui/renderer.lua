@@ -69,18 +69,6 @@ function M.render_notes(notes_data)
     -- Get the last line index
     local last_line = math.max(0, api.nvim_buf_line_count(buf) - 1)
 
-    -- Set a virtual text at the bottom that appears to float
-    footer_extmark_id = api.nvim_buf_set_extmark(buf, footer_ns_id, last_line, 0, {
-        virt_lines = {
-            { { "", "" } }, -- Empty line as separator
-            { { footer_text:match("^(.-)$"), "Comment" } },
-        },
-        virt_text_pos = "overlay",
-        hl_mode = "combine",
-        priority = 100,
-        right_gravity = false,
-    })
-
     -- Set the window for editing
     if win and api.nvim_win_is_valid(win) then
         -- Setup scrolloff to ensure footer is always visible

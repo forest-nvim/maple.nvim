@@ -51,6 +51,9 @@ function M.create_win()
     api.nvim_win_set_option(win, 'wrap', true)
     api.nvim_win_set_option(win, 'linebreak', true)
     
+    -- Show line numbers
+    api.nvim_win_set_option(win, 'number', true)
+    
     -- Set scrolloff to keep footer visible
     api.nvim_win_set_option(win, 'scrolloff', 3)
     
