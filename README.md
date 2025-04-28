@@ -1,6 +1,6 @@
 # maple.nvim
 
-A simple Neovim plugin for managing todo lists in a popup window.
+A simple Neovim plugin for managing todo lists
 
 ## Features
 
@@ -28,7 +28,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
-  'username/maple.nvim',
+  'forest.nvim/maple.nvim',
   config = function()
     require('maple').setup({
       -- Your configuration options here
@@ -63,24 +63,3 @@ require('maple').setup({
   }
 })
 ```
-
-## Usage
-
-Open the todo list with the command:
-
-```
-:MapleTodo
-```
-
-### Keybindings
-
-Inside the todo window (default keys, can be configured):
-
-- `a`: Add a new todo item
-- `x`: Toggle completion status of the current todo
-- `d`: Delete the current todo
-- `q` or `<Esc>`: Close the todo window
-
-## License
-
-MIT
