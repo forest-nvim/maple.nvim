@@ -36,4 +36,11 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 - Project Based notes (Based on git repository, falls back to directory of folder)
 - Global notes that persist no matter what directory you are in.
 
+### Default keybinds:
+- <leader>m: Toggle Maple
+- q: quit
+- m: toggle mode (Project vs Global)
+
 Contributions and Ideas are always welcome!
+
+
