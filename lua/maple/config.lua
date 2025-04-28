@@ -23,7 +23,8 @@ M.defaults = {
         toggle = 'x',
         delete = 'd',
         close = { 'q', 'Esc' },
-        switch_mode = 'm' -- Toggle between global and project view
+        switch_mode = 'm', -- Toggle between global and project view
+        add_note = 'n' -- Add note to current todo
     },
 
     -- Global keybind

@@ -169,7 +169,8 @@ function M.add_todo(text, completed)
         text = text,
         completed = completed or false,
         is_global = config.options.todo_mode == "global",
-        created_at = os.time()
+        created_at = os.time(),
+        subtasks = {} -- Change notes to subtasks
     }
 
     table.insert(todos, new_todo)
