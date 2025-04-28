@@ -69,7 +69,7 @@ require('maple').setup({
 Open the todo list with the command:
 
 ```
-:mapleTodo
+:MapleTodo
 ```
 
 ### Keybindings

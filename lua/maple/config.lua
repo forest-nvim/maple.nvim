@@ -12,13 +12,9 @@ M.defaults = {
 
     -- Storage
     storage_path = vim.fn.stdpath('data') .. '/maple',
-    db_path = vim.fn.stdpath('data') .. '/maple/maple.db',
-
-    -- Database options
-    use_sqlite = true, -- Use SQLite if available (falls back to JSON if not)
 
     -- Todo management
-    todo_mode = "combined",            -- "global", "project", or "combined"
+    todo_mode = "project",                -- "global" or "project"
     use_project_specific_todos = true, -- Store todos by project
 
     -- Keymaps
@@ -27,11 +23,11 @@ M.defaults = {
         toggle = 'x',
         delete = 'd',
         close = { 'q', 'Esc' },
-        switch_mode = 'm' -- Toggle between global, project, and combined view
+        switch_mode = 'm' -- Toggle between global and project view
     },
 
     -- Global keybind
-    set_default_keybind = true -- Set to false to disable the default <leader>q keybind
+    set_default_keybind = true -- Set to false to disable the default <leader>m keybind
 }
 
 -- User configuration
@@ -42,6 +38,11 @@ function M.setup(opts)
     -- Merge user options with defaults
     M.options = vim.tbl_deep_extend('force', M.defaults, opts or {})
     return M.options
+end
+
+-- Initialize with defaults if not done already
+if not M.options or not next(M.options) then
+    M.setup({})
 end
 
 return M

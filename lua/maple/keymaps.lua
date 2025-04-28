@@ -2,6 +2,7 @@ local api = vim.api
 local window = require('maple.ui.window')
 local storage = require('maple.storage')
 local renderer = require('maple.ui.renderer')
+local config = require('maple.config')
 
 local M = {}
 
@@ -20,12 +21,24 @@ function M.setup_keymaps(todos)
     set_keymap('a', function()
         vim.ui.input({ prompt = 'New todo: ' }, function(input)
             if input and input ~= '' then
-                table.insert(todos, { text = input, completed = false })
+                table.insert(todos, { text = input, completed = false, is_global = config.options.todo_mode == "global" })
                 storage.save_todos(todos)
                 api.nvim_buf_set_option(buf, 'modifiable', true)
                 renderer.render_todos(todos)
             end
         end)
+    end)
+
+    set_keymap('m', function()
+        if config.options.todo_mode == "global" then
+            config.options.todo_mode = "project"
+        else
+            config.options.todo_mode = "global"
+        end
+        storage.reset()
+        todos = storage.load_todos()
+        api.nvim_buf_set_option(buf, 'modifiable', true)
+        renderer.render_todos(todos)
     end)
 
     set_keymap('x', function()

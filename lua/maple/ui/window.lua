@@ -1,4 +1,5 @@
 local api = vim.api
+local config = require('maple.config')
 
 local M = {}
 
@@ -17,6 +18,13 @@ function M.create_win()
     local row = math.floor((vim.o.lines - height) / 2)
     local col = math.floor((vim.o.columns - width) / 2)
 
+    local mode_text = ""
+    if config.options.todo_mode == "global" then
+        mode_text = "Global Todo Items"
+    else
+        mode_text = "Project Todo Items"
+    end
+
     local opts = {
         relative = 'editor',
         width = width,
@@ -25,12 +33,12 @@ function M.create_win()
         col = col,
         style = 'minimal',
         border = 'rounded',
-        title = '',
-        title_pos = 'center'
+        title = ' Maple ',
+        title_pos = 'left'
     }
 
     win = api.nvim_open_win(buf, true, opts)
-    api.nvim_win_set_option(win, 'winblend', 20)
+    api.nvim_win_set_option(win, 'winblend', 0)
     return win
 end
 

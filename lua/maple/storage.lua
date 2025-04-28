@@ -1,21 +1,9 @@
 local M = {}
-local config = require('maple.config')
+local json_storage = require('maple.storage.json')
 
 -- Initialize storage backend
 local function init_storage()
-    -- Check config to see if we should use SQLite
-    if config.options.use_sqlite then
-        -- Try loading SQLite
-        local has_sqlite, sqlite_storage = pcall(require, 'maple.db')
-        if has_sqlite then
-            return sqlite_storage
-        else
-            vim.notify("SQLite not available. Falling back to JSON storage.", vim.log.levels.WARN)
-        end
-    end
-
-    -- Fallback to JSON storage
-    return require('maple.storage.json')
+    return json_storage
 end
 
 -- Get the current storage backend
