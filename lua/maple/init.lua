@@ -11,9 +11,9 @@ function M.setup(user_config)
     -- Initialize configuration
     config.setup(user_config or {})
     
-    -- Set up default keybind if enabled
-    if config.options.set_default_keybind ~= false then
-        vim.keymap.set('n', '<leader>m', '<cmd>MapleNotes<CR>', {
+    -- Set up toggle keybind if provided
+    if config.options.keymaps.toggle then
+        vim.keymap.set('n', config.options.keymaps.toggle, '<cmd>MapleNotes<CR>', {
             noremap = true,
             silent = true,
             desc = 'Toggle Maple Notes'

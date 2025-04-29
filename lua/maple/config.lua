@@ -20,12 +20,10 @@ M.defaults = {
 
     -- Keymaps
     keymaps = {
-        close = { 'q', 'Esc' },
-        switch_mode = 'm', -- Toggle between global and project view
-    },
-
-    -- Global keybind
-    set_default_keybind = true -- Set to false to disable the default <leader>m keybind
+        toggle = nil,      -- Key to toggle Maple (e.g. '<leader>m')
+        close = nil,       -- Key to close the window (e.g. 'q')
+        switch_mode = nil, -- Key to switch between global and project view (e.g. 'm')
+    }
 }
 
 -- User configuration

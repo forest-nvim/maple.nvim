@@ -24,15 +24,17 @@ function M.setup_keymaps(notes_data)
 
     -- Set up a basic key mapping function
     local function set_keymap(key, callback)
-        api.nvim_buf_set_keymap(buf, 'n', key, '', {
-            noremap = true,
-            silent = true,
-            callback = callback
-        })
+        if key then
+            api.nvim_buf_set_keymap(buf, 'n', key, '', {
+                noremap = true,
+                silent = true,
+                callback = callback
+            })
+        end
     end
 
     -- Switch between global and project notes
-    set_keymap('m', function()
+    set_keymap(config.options.keymaps.switch_mode, function()
         -- Save current notes before switching
         local content = renderer.get_notes_content()
         storage.save_notes({ content = content })
@@ -54,14 +56,7 @@ function M.setup_keymaps(notes_data)
     end)
 
     -- Close window
-    set_keymap('q', function()
-        -- Save notes before closing
-        local content = renderer.get_notes_content()
-        storage.save_notes({ content = content })
-        window.close_win()
-    end)
-
-    set_keymap('<Esc>', function()
+    set_keymap(config.options.keymaps.close, function()
         -- Save notes before closing
         local content = renderer.get_notes_content()
         storage.save_notes({ content = content })
