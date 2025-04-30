@@ -24,7 +24,7 @@ require('maple').setup({
 })
 
 -- Creating a keymap to open the todo list
-vim.keymap.set('n', '<leader>t', '<cmd>MapleTodo<CR>', {
+vim.keymap.set('n', '<leader>t', '<cmd>MapleNotes<CR>', {
     noremap = true,
     silent = true,
     desc = 'Open maple Todo List'
