@@ -23,11 +23,9 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 ```lua
 {
   'forest-nvim/maple.nvim',
-  config = function()
-    require('maple').setup({
+  opts = {
       -- Your configuration options here
-    })
-  end
+    }
 }
 ```
 
