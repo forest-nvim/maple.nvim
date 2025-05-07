@@ -62,10 +62,8 @@ function M.create_win()
 	-- Show line numbers
 	if config.options.relative_number then
 		api.nvim_win_set_option(win, "relativenumber", true)
-		print("Relative line numbers enabled")
 	else
 		api.nvim_win_set_option(win, "number", true)
-		print("Relative line numbers enabled")
 	end
 
 	-- Set scrolloff to keep footer visible
