@@ -30,12 +30,23 @@ function M.render_notes(notes_data)
     local lines = {}
     local content = notes_data.content or ""
 
-    -- Split content into lines
-    if content and content ~= "" then
-        for line in content:gmatch("[^\r\n]+") do
-            table.insert(lines, line)
-        end
-    end
+	-- Split content into lines
+	if content and content ~= "" then
+		local s = content:gsub("\r\n", "\n"):gsub("\r", "\n")
+		local current_pos = 1
+
+		while current_pos <= #s do
+			local nl_pos = s:find("\n", current_pos, true)
+
+			if nl_pos then
+				table.insert(lines, s:sub(current_pos, nl_pos - 1))
+				current_pos = nl_pos + 1
+			else
+				table.insert(lines, s:sub(current_pos))
+				break
+			end
+		end
+	end
 
     if #lines == 0 then
         table.insert(lines, "")
