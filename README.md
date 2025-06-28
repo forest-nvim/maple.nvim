@@ -1,7 +1,5 @@
 # maple.nvim 🌴
 
-A modern Neovim plugin for managing notes with a side panel file tree interface, storing all notes in a central location.
-
 ![Screenshot](https://github.com/forest-nvim/maple.nvim/blob/main/assets/screenshot.png?raw=true)
 
 ## Features
@@ -58,7 +56,7 @@ require('maple').setup({
     auto_close = false,           -- Auto close when opening a file
     auto_refresh = true,          -- Auto refresh the file tree
     respect_gitignore = true,     -- Respect .gitignore files
-    
+
     -- File icons
     icons = {
         default = '📄',
@@ -72,7 +70,7 @@ require('maple').setup({
             symlink_open = '🔗',
         },
     },
-    
+
     -- Keymaps
     keymaps = {
         toggle = '<leader>m',     -- Toggle the side panel
@@ -83,10 +81,10 @@ require('maple').setup({
         close = 'q',              -- Close the panel
         refresh = 'R',            -- Refresh the file tree
     },
-    
+
     -- Notes management
     notes_dir = vim.fn.stdpath('data') .. '/maple/notes',  -- Central notes directory
-    
+
     -- UI
     highlight_opened_files = true,
     hide_dotfiles = true,
@@ -104,24 +102,6 @@ require('maple').setup({
 - `:MapleFindFile` - Find and open a note file
 - `:MapleNewFile` - Create a new note
 
-## Keymaps
-
-When the side panel is focused:
-
-- `o` - Open file/folder
-- `a` - Create new file
-- `d` - Create new directory
-- `r` - Rename file/directory
-- `D` - Delete file/directory
-- `R` - Refresh the file tree
-- `q` - Close the panel
-- `?` - Show help
-
-## Requirements
-
-- Neovim 0.8.0 or higher
-- nvim-lua/plenary.nvim
-- nvim-tree/nvim-web-devicons (optional, for file icons)
 
 ## Contributing
 
