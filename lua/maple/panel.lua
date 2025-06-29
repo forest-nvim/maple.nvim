@@ -26,24 +26,27 @@ local function create_win()
     local width = config.options.width
     local position = config.options.position
     
-    local opts = {
-        relative = 'editor',
-        width = width,
-        height = vim.o.lines - vim.o.cmdheight - 1,
-        row = 0,
-        col = position == 'left' and 0 or (vim.o.columns - width - 1),
-        style = 'minimal',
-        border = 'single',
-        title = ' Notes ',
-        title_pos = 'center',
-    }
+    -- Save current window to return to it later
+    local current_win = api.nvim_get_current_win()
     
-    win = api.nvim_open_win(buf, true, opts)
+    -- Create a new vertical split
+    vim.cmd('vsplit')
+    win = api.nvim_get_current_win()
+    
+    -- Set window width
+    vim.cmd('vertical resize ' .. width)
+    
+    -- Set the buffer in the window
+    api.nvim_win_set_buf(win, buf)
     
     -- Configure window options
     api.nvim_win_set_option(win, 'number', false)
     api.nvim_win_set_option(win, 'relativenumber', false)
     api.nvim_win_set_option(win, 'wrap', false)
+    api.nvim_win_set_option(win, 'winfixwidth', true)  -- Keep width when closing other splits
+    
+    -- Return to the original window
+    api.nvim_set_current_win(current_win)
     
     -- Set up keymaps
     local keymaps = config.options.keymaps
@@ -82,6 +85,11 @@ end
 -- Close the panel window
 function M.close()
     if win and api.nvim_win_is_valid(win) then
+        local current_win = api.nvim_get_current_win()
+        if current_win == win then
+            -- If we're in the panel window, go to the next window before closing
+            vim.cmd('wincmd p')
+        end
         api.nvim_win_close(win, true)
     end
     is_open = false
@@ -171,8 +179,29 @@ end
 
 -- Open a file or folder
 function M.open_file()
-    -- TODO: Implement file opening
-    utils.notify('Open file functionality coming soon!', 'info')
+    if not is_open or not win or not api.nvim_win_is_valid(win) then return end
+    
+    -- Get the current line
+    local line = api.nvim_get_current_line()
+    -- Remove the icon and space at the start
+    local filename = line:match('[^%s]+ (.+)$')
+    if not filename then return end
+    
+    local full_path = vim.fn.fnamemodify(config.options.notes_dir .. '/' .. filename, ':p')
+    
+    -- Check if it's a directory
+    if vim.fn.isdirectory(full_path) == 1 then
+        -- TODO: Handle directory navigation
+        utils.notify('Directory navigation coming soon!', 'info')
+        return
+    end
+    
+    -- Create a new vertical split to the right of the panel
+    vim.cmd('wincmd l')
+    vim.cmd('vsplit')
+    
+    -- Open the file in the new split
+    vim.cmd('edit ' .. vim.fn.fnameescape(full_path))
 end
 
 -- Show help
