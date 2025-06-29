@@ -91,9 +91,15 @@ function M.close()
             vim.cmd('wincmd p')
         end
         api.nvim_win_close(win, true)
+        
+        -- Clear the buffer if it exists
+        if buf and api.nvim_buf_is_valid(buf) then
+            api.nvim_buf_delete(buf, { force = true })
+        end
     end
     is_open = false
     win = nil
+    buf = nil
 end
 
 -- Toggle the panel
@@ -108,6 +114,10 @@ end
 -- Open the panel
 function M.open()
     if not is_open then
+        -- Always create a new buffer to avoid conflicts
+        if buf and api.nvim_buf_is_valid(buf) then
+            api.nvim_buf_delete(buf, { force = true })
+        end
         create_buf()
         create_win()
         M.refresh()
