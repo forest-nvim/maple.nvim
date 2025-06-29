@@ -1,29 +1,28 @@
 # maple.nvim 🌴
 
-![Screenshot](https://github.com/forest-nvim/maple.nvim/blob/main/assets/screenshot.png?raw=true)
+A powerful file tree explorer for Neovim inspired by nvim-tree, designed for organizing notes and folders with hierarchical navigation.
 
 ## Features
 
-- 📂 Side panel file tree for easy navigation
-- 🏠 Centralized notes storage in `~/.local/share/nvim/maple/notes`
-- 🎨 Customizable appearance and keybinds
-- 📝 Markdown support with syntax highlighting
-- 🚀 Built with plenary.nvim for reliability
+- 🌳 **Hierarchical file tree** with expand/collapse functionality
+- 📂 **Tree navigation** with visual indicators and indentation
+- 📝 **Smart file operations** - create, delete, and manage files/folders
+- 🔍 **Parent/child navigation** similar to nvim-tree
+- 🗂️ **Directory state persistence** - remembers expanded folders
+- 📄 **Auto .md extension** for new files
+- 🏠 **Centralized storage** in your nvim data directory
+- ❓ **Built-in help system** with `g?`
 
 ## Installation
 
-Using [lazy.nvim](https://github.com/folke/lazy.nvim) (recommended):
+Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
-  'forest-nvim/maple.nvim',
-  dependencies = {
-    'nvim-lua/plenary.nvim',
-    'nvim-tree/nvim-web-devicons',  -- optional, for file icons
-  },
-  opts = {
-    -- Your configuration here
-  }
+  'your-username/maple.nvim',
+  config = function()
+    require('maple').setup()
+  end
 }
 ```
 
@@ -31,78 +30,96 @@ Using [packer.nvim](https://github.com/wbthomason/packer.nvim):
 
 ```lua
 use {
-  'forest-nvim/maple.nvim',
-  requires = {
-    'nvim-lua/plenary.nvim',
-    'nvim-tree/nvim-web-devicons',  -- optional
-  },
+  'your-username/maple.nvim',
   config = function()
-    require('maple').setup({
-      -- Your configuration here
-    })
+    require('maple').setup()
   end
 }
 ```
 
 ## Configuration
 
-Default configuration with all available options:
-
 ```lua
 require('maple').setup({
-    -- Panel settings
-    width = 30,                   -- Width of the side panel
-    position = 'left',            -- 'left' or 'right'
-    auto_close = false,           -- Auto close when opening a file
-    auto_refresh = true,          -- Auto refresh the file tree
-    respect_gitignore = true,     -- Respect .gitignore files
-
-    -- File icons
-    icons = {
-        default = '📄',
-        symlink = '🔗',
-        folder = {
-            default = '📁',
-            open = '📂',
-            empty = '📁',
-            empty_open = '📂',
-            symlink = '🔗',
-            symlink_open = '🔗',
-        },
-    },
-
-    -- Keymaps
-    keymaps = {
-        toggle = '<leader>m',     -- Toggle the side panel
-        create_file = 'a',        -- Create a new file
-        create_folder = 'd',      -- Create a new folder
-        rename = 'r',             -- Rename a file/folder
-        delete = 'D',             -- Delete a file/folder
-        close = 'q',              -- Close the panel
-        refresh = 'R',            -- Refresh the file tree
-    },
-
-    -- Notes management
-    notes_dir = vim.fn.stdpath('data') .. '/maple/notes',  -- Central notes directory
-
-    -- UI
-    highlight_opened_files = true,
-    hide_dotfiles = true,
-    diagnostics = {
-        enable = true,
-        show_on_dirs = true,
-    },
+  keybind = '<leader>m',  -- Change the toggle keybind (default: <leader>m)
+  width = 35,            -- Sidebar width (default: 35)
+  icons = {
+    folder = '📁',
+    folder_open = '📂',
+    folder_closed = '▶',
+    file = '📄'
+  },
+  keymaps = {
+    create_file = 'a',
+    create_folder = 'A',
+    delete = 'd',
+    close = 'q',
+    refresh = 'r',
+    expand_all = 'E',
+    collapse_all = 'W',
+    parent = 'P'
+  }
 })
 ```
 
+## Usage
+
+### Basic Navigation
+
+- Press `<leader>m` to toggle the file tree sidebar
+- The tree shows your file hierarchy with visual indicators
+- **Directories** show expand/collapse arrows (▶/📂)
+- **Files** are indented under their parent directories
+
+### Keybindings
+
+When the file tree is focused, use these keys:
+
+#### Navigation
+
+- `<CR>` - Open file or toggle directory expansion
+- `o` - Open file in new split (files only)
+- `l` - Expand directory or open file
+- `h` - Collapse directory or go to parent
+- `P` - Go to parent directory
+
+#### Tree Operations
+
+- `E` - Expand all directories
+- `W` - Collapse all directories
+- `r` - Refresh the tree
+
+#### File Operations
+
+- `a` - Create new file (in current directory)
+- `A` - Create new directory (in current directory)
+- `d` - Delete file or directory (with confirmation)
+
+#### Other
+
+- `q` - Close the file tree
+- `g?` - Show help with all keybindings
+
+### Tree Structure
+
+The file tree displays:
+
+- **Indentation** to show hierarchy levels
+- **Visual indicators** for expandable folders
+- **Smart sorting** - directories first, then files (case-insensitive)
+- **State persistence** - expanded folders stay expanded
+
 ## Commands
 
-- `:MapleToggle` - Toggle the notes panel
-- `:MapleFocus` - Focus the notes panel
-- `:MapleFindFile` - Find and open a note file
-- `:MapleNewFile` - Create a new note
+- `:MapleToggle` - Toggle the file tree sidebar
 
+## File Organization
 
-## Contributing
+- Files are stored in `~/.local/share/nvim/maple/notes` (or equivalent on your system)
+- New files automatically get a `.md` extension if no extension is provided
+- The tree structure mirrors your actual file system hierarchy
+- Directory expansion state is remembered during your session
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## Inspiration
+
+This plugin is inspired by [nvim-tree.lua](https://github.com/nvim-tree/nvim-tree.lua) and adopts similar navigation patterns and tree management concepts while remaining focused on note-taking workflows.

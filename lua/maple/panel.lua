@@ -1,115 +1,173 @@
 local M = {}
-local api = vim.api
 local config = require('maple.config')
-local utils = require('maple.utils')
 local fs = require('maple.fs')
+local utils = require('maple.utils')
 
-local ns_id = api.nvim_create_namespace('maple')
-local buf, win
+local buf = nil
+local win = nil
 local is_open = false
+local tree_state = {}
 
--- Create the panel buffer
-local function create_buf()
-    buf = api.nvim_create_buf(false, true)
-    api.nvim_buf_set_name(buf, 'maple://panel')
-    api.nvim_buf_set_option(buf, 'filetype', 'maple')
-    api.nvim_buf_set_option(buf, 'buftype', 'nofile')
-    api.nvim_buf_set_option(buf, 'swapfile', false)
-    api.nvim_buf_set_option(buf, 'bufhidden', 'hide')
-    api.nvim_buf_set_option(buf, 'modifiable', false)
-    api.nvim_buf_set_option(buf, 'readonly', true)
+local function init_dir()
+    local notes_path = config.notes_dir
+    if vim.fn.isdirectory(notes_path) == 0 then
+        vim.fn.mkdir(notes_path, 'p')
+    end
+    return notes_path
+end
+
+local function norm_path(path)
+    return path:gsub('/$', '')
+end
+
+local function node_id(path)
+    return norm_path(path)
+end
+
+local function is_expanded(path)
+    local id = node_id(path)
+    return tree_state[id] and tree_state[id].expanded
+end
+
+local function set_expanded(path, expanded)
+    local id = node_id(path)
+    if not tree_state[id] then
+        tree_state[id] = {}
+    end
+    tree_state[id].expanded = expanded
+end
+
+local function get_depth(path, root_path)
+    local relative_path = path:sub(#root_path + 1)
+    if relative_path == '' then return 0 end
+    local _, depth = relative_path:gsub('[^/]+', '')
+    return depth
+end
+
+local function parent_path(path)
+    return path:match('(.*)/[^/]+$') or path
+end
+
+local function build_tree(root_path)
+    local lines = {}
+    local line_to_path = {}
+
+    local function add_dir_contents(dir_path, current_depth)
+        local files = fs.scan_dir(dir_path)
+
+        for _, file in ipairs(files) do
+            local indent = string.rep('  ', current_depth)
+            local icon = file.icon
+            local expand_icon = ''
+
+            if file.is_dir then
+                expand_icon = is_expanded(file.path) and config.icons.folder_open or config.icons.folder_closed
+                icon = ''
+            end
+
+            local line = indent .. expand_icon .. icon .. ' ' .. file.name
+            table.insert(lines, line)
+            line_to_path[#lines] = file.path
+
+            if file.is_dir and is_expanded(file.path) then
+                add_dir_contents(file.path, current_depth + 1)
+            end
+        end
+    end
+
+    add_dir_contents(root_path, 0)
+    return lines, line_to_path
+end
+
+local function create_buffer()
+    buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_option(buf, 'buftype', 'nofile')
+    vim.api.nvim_buf_set_option(buf, 'swapfile', false)
+    vim.api.nvim_buf_set_option(buf, 'filetype', 'maple')
+    vim.api.nvim_buf_set_name(buf, 'Maple')
     return buf
 end
 
--- Create the panel window
-local function create_win()
-    local width = config.options.width
-    local position = config.options.position
-    
-    -- Save current window to return to it later
-    local current_win = api.nvim_get_current_win()
-    
-    -- Create a new vertical split
+local function create_window()
     vim.cmd('vsplit')
-    win = api.nvim_get_current_win()
-    
-    -- Set window width
-    vim.cmd('vertical resize ' .. width)
-    
-    -- Set the buffer in the window
-    api.nvim_win_set_buf(win, buf)
-    
-    -- Configure window options
-    api.nvim_win_set_option(win, 'number', false)
-    api.nvim_win_set_option(win, 'relativenumber', false)
-    api.nvim_win_set_option(win, 'wrap', false)
-    api.nvim_win_set_option(win, 'winfixwidth', true)  -- Keep width when closing other splits
-    api.nvim_win_set_option(win, 'signcolumn', 'no')   -- Disable sign column for better performance
-    api.nvim_win_set_option(win, 'cursorline', false)  -- Disable cursor line for better performance
-    
-    -- Only set up keymaps if they haven't been set up yet
-    if not vim.b._maple_keymaps_set then
-        -- Set up keymaps
-        local keymaps = config.options.keymaps
-        for action, key in pairs(keymaps) do
-            if action ~= 'toggle' then
-                api.nvim_buf_set_keymap(buf, 'n', key, '', {
-                    noremap = true,
-                    silent = true,
-                    callback = function()
-                        M[action](M)
-                    end,
-                    desc = 'Maple: ' .. action:gsub('_', ' ')
-                })
-            end
-        end
-        
-        -- Add help keymap
-        api.nvim_buf_set_keymap(buf, 'n', '?', '', {
-            noremap = true,
-            silent = true,
-            callback = M.show_help,
-            desc = 'Maple: Show help'
-        })
-        
-        -- Add default keymap for opening files
-        api.nvim_buf_set_keymap(buf, 'n', '<CR>', '', {
-            noremap = true,
-            silent = true,
-            callback = M.open_file,
-            desc = 'Maple: Open file/folder'
-        })
-        
-        vim.b._maple_keymaps_set = true
-    end
-    
-    -- Return to the original window
-    api.nvim_set_current_win(current_win)
-    
+    win = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(win, buf)
+
+    vim.api.nvim_win_set_option(win, 'number', false)
+    vim.api.nvim_win_set_option(win, 'relativenumber', false)
+    vim.api.nvim_win_set_option(win, 'wrap', false)
+    vim.api.nvim_win_set_option(win, 'cursorline', true)
+    vim.api.nvim_win_set_option(win, 'winfixwidth', true)
+    vim.api.nvim_win_set_width(win, config.width)
+
+    local keymaps = config.keymaps
+    local opts = { buffer = buf, silent = true }
+
+    vim.keymap.set('n', '<CR>', M.toggle_item, opts)
+    vim.keymap.set('n', 'l', M.expand_edit, opts)
+    vim.keymap.set('n', 'h', M.collapse_parent, opts)
+    vim.keymap.set('n', 'o', M.open_item, opts)
+    vim.keymap.set('n', keymaps.create_file, M.create_file, opts)
+    vim.keymap.set('n', keymaps.create_folder, M.create_folder, opts)
+    vim.keymap.set('n', keymaps.delete, M.delete_item, opts)
+    vim.keymap.set('n', keymaps.close, M.close, opts)
+    vim.keymap.set('n', keymaps.refresh, M.refresh, opts)
+    vim.keymap.set('n', keymaps.expand_all, M.expand_all, opts)
+    vim.keymap.set('n', keymaps.collapse_all, M.collapse_all, opts)
+    vim.keymap.set('n', keymaps.parent, M.go_parent, opts)
+    vim.keymap.set('n', 'g?', M.show_help, opts)
+
     return win
 end
 
--- Close the panel window
+local function open_right(file_path)
+    vim.cmd('wincmd l')
+    vim.cmd('vsplit ' .. vim.fn.fnameescape(file_path))
+end
+
+function M.refresh()
+    if not buf or not vim.api.nvim_buf_is_valid(buf) then
+        return
+    end
+
+    local root_path = init_dir()
+    local lines, line_to_path = build_tree(root_path)
+
+    vim.api.nvim_buf_set_option(buf, 'modifiable', true)
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+    vim.api.nvim_buf_set_option(buf, 'modifiable', false)
+
+    vim.b[buf].maple_line_to_path = line_to_path
+end
+
+function M.open()
+    if is_open then
+        return
+    end
+
+    local root_path = init_dir()
+    set_expanded(root_path, true)
+
+    if not buf or not vim.api.nvim_buf_is_valid(buf) then
+        create_buffer()
+    end
+
+    if not win or not vim.api.nvim_win_is_valid(win) then
+        create_window()
+    end
+
+    M.refresh()
+    is_open = true
+end
+
 function M.close()
-    if win and api.nvim_win_is_valid(win) then
-        local current_win = api.nvim_get_current_win()
-        if current_win == win then
-            -- If we're in the panel window, go to the next window before closing
-            vim.cmd('wincmd p')
-        end
-        api.nvim_win_close(win, true)
-        
-        -- Clear the buffer if it exists
-        if buf and api.nvim_buf_is_valid(buf) then
-            api.nvim_buf_delete(buf, { force = true })
-        end
+    if win and vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_win_close(win, true)
     end
     is_open = false
     win = nil
-    buf = nil
 end
 
--- Toggle the panel
 function M.toggle()
     if is_open then
         M.close()
@@ -118,217 +176,282 @@ function M.toggle()
     end
 end
 
--- Open the panel
-function M.open()
-    -- If panel is already open, just focus it
-    if is_open and win and api.nvim_win_is_valid(win) then
-        api.nvim_set_current_win(win)
+function M.current_path()
+    if not buf or not vim.api.nvim_buf_is_valid(buf) then
+        return nil
+    end
+
+    local line_to_path = vim.b[buf].maple_line_to_path
+    if not line_to_path then
+        return nil
+    end
+
+    local current_line = vim.api.nvim_win_get_cursor(win)[1]
+    return line_to_path[current_line]
+end
+
+function M.current_item()
+    local path = M.current_path()
+    if not path then
+        return nil
+    end
+
+    local is_dir = vim.fn.isdirectory(path) == 1
+    return {
+        path = path,
+        name = vim.fn.fnamemodify(path, ':t'),
+        is_dir = is_dir,
+        icon = is_dir and config.icons.folder or config.icons.file
+    }
+end
+
+function M.toggle_item()
+    local item = M.current_item()
+    if not item then
         return
     end
-    
-    -- Create new buffer if needed
-    if not buf or not api.nvim_buf_is_valid(buf) then
-        buf = create_buf()
+
+    if item.is_dir then
+        local was_expanded = is_expanded(item.path)
+        set_expanded(item.path, not was_expanded)
+        M.refresh()
+    else
+        open_right(item.path)
     end
-    
-    -- Create window if needed
-    if not win or not api.nvim_win_is_valid(win) then
-        create_win()
+end
+
+function M.expand_edit()
+    local item = M.current_item()
+    if not item then
+        return
     end
-    
-    -- Refresh content and set focus
+
+    if item.is_dir then
+        if not is_expanded(item.path) then
+            set_expanded(item.path, true)
+            M.refresh()
+        end
+    else
+        open_right(item.path)
+    end
+end
+
+function M.collapse_parent()
+    local item = M.current_item()
+    if not item then
+        return
+    end
+
+    if item.is_dir and is_expanded(item.path) then
+        set_expanded(item.path, false)
+        M.refresh()
+    else
+        M.go_parent()
+    end
+end
+
+function M.go_parent()
+    local item = M.current_item()
+    if not item then
+        return
+    end
+
+    local parent = parent_path(item.path)
+    local root_path = init_dir()
+
+    if parent and parent ~= item.path and #parent >= #root_path then
+        M.focus_path(parent)
+    end
+end
+
+function M.focus_path(target_path)
+    if not buf or not vim.api.nvim_buf_is_valid(buf) then
+        return
+    end
+
+    local line_to_path = vim.b[buf].maple_line_to_path
+    if not line_to_path then
+        return
+    end
+
+    for line_num, path in pairs(line_to_path) do
+        if path == target_path then
+            vim.api.nvim_win_set_cursor(win, { line_num, 0 })
+            return true
+        end
+    end
+    return false
+end
+
+function M.open_item()
+    local item = M.current_item()
+    if not item then
+        return
+    end
+
+    if not item.is_dir then
+        open_right(item.path)
+    end
+end
+
+function M.expand_all()
+    local root_path = init_dir()
+
+    local function expand_recursive(dir_path)
+        set_expanded(dir_path, true)
+        local files = fs.scan_dir(dir_path)
+        for _, file in ipairs(files) do
+            if file.is_dir then
+                expand_recursive(file.path)
+            end
+        end
+    end
+
+    expand_recursive(root_path)
     M.refresh()
-    is_open = true
-    api.nvim_set_current_win(win)
 end
 
--- Focus the panel
-function M.focus()
-    if not is_open then
-        M.open()
-    end
-    if win and api.nvim_win_is_valid(win) then
-        api.nvim_set_current_win(win)
-    end
+function M.collapse_all()
+    tree_state = {}
+    local root_path = init_dir()
+    set_expanded(root_path, true)
+    M.refresh()
 end
 
--- Refresh the panel content
-function M.refresh()
-    if not buf or not api.nvim_buf_is_valid(buf) then return end
-    
-    -- Get the current working directory
-    local cwd = vim.fn.getcwd()
-    local notes_dir = cwd .. '/.maple'
-    
-    -- Create .maple directory if it doesn't exist
-    if not vim.fn.isdirectory(notes_dir) then
-        vim.fn.mkdir(notes_dir, 'p')
-    end
-    
-    -- List directory contents
-    local files = fs.scan_directory(notes_dir)
-    
-    -- Format files for display
-    local lines = {}
-    for _, file in ipairs(files) do
-        local icon = fs.get_icon(file)
-        table.insert(lines, icon .. ' ' .. file.name)
-    end
-    
-    -- Only update if content has changed
-    local current_lines = api.nvim_buf_get_lines(buf, 0, -1, false)
-    local current_content = table.concat(current_lines, '\n')
-    local new_content = table.concat(lines, '\n')
-    
-    if current_content ~= new_content then
-        -- Update buffer
-        api.nvim_buf_set_option(buf, 'modifiable', true)
-        api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-        api.nvim_buf_set_option(buf, 'modifiable', false)
-    end
-end
-
--- Create a new file
 function M.create_file()
-    -- Get the current working directory
-    local cwd = vim.fn.getcwd()
-    local notes_dir = cwd .. '/.maple'
-    
-    -- Ensure the .maple directory exists
-    if not vim.fn.isdirectory(notes_dir) then
-        vim.fn.mkdir(notes_dir, 'p')
-    end
-    
-    -- Prompt for file name
-    vim.ui.input({prompt = 'File name: '}, function(input)
-        if not input or input == '' then return end
-        
-        -- Create the file in the .maple directory
-        local file_path = notes_dir .. '/' .. input
-        local fd = vim.loop.fs_open(file_path, 'w', 420) -- 0644 permissions
-        if fd then
-            vim.loop.fs_close(fd)
+    local item = M.current_item()
+    local parent_dir = item and item.is_dir and item.path or parent_path(item and item.path or init_dir())
+
+    vim.ui.input({ prompt = 'File name: ' }, function(name)
+        if not name or name == '' then return end
+        if not name:match('%.') then name = name .. '.md' end
+        if fs.create_file(parent_dir, name) then
+            if item and item.is_dir then
+                set_expanded(item.path, true)
+            end
             M.refresh()
+            utils.notify('Created file: ' .. name)
         else
-            utils.notify('Failed to create file: ' .. file_path, 'error')
+            utils.notify('Failed to create file: ' .. name, 'error')
         end
     end)
 end
 
--- Create a new folder
 function M.create_folder()
-    -- Get the current working directory
-    local cwd = vim.fn.getcwd()
-    local notes_dir = cwd .. '/.maple'
-    
-    -- Ensure the .maple directory exists
-    if not vim.fn.isdirectory(notes_dir) then
-        vim.fn.mkdir(notes_dir, 'p')
-    end
-    
-    -- Prompt for folder name
-    vim.ui.input({prompt = 'Folder name: '}, function(input)
-        if not input or input == '' then return end
-        
-        -- Create the folder in the .maple directory
-        local folder_path = notes_dir .. '/' .. input
-        local success = vim.fn.mkdir(folder_path, 'p')
-        if success == 1 then
+    local item = M.current_item()
+    local parent_dir = item and item.is_dir and item.path or parent_path(item and item.path or init_dir())
+
+    vim.ui.input({ prompt = 'Folder name: ' }, function(name)
+        if not name or name == '' then return end
+        if fs.create_dir(parent_dir, name) then
+            if item and item.is_dir then
+                set_expanded(item.path, true)
+            end
             M.refresh()
+            utils.notify('Created folder: ' .. name)
         else
-            utils.notify('Failed to create folder: ' .. folder_path, 'error')
+            utils.notify('Failed to create folder: ' .. name, 'error')
         end
     end)
 end
 
--- Rename a file or folder
-function M.rename()
-    -- TODO: Implement rename
-    utils.notify('Rename functionality coming soon!', 'info')
-end
-
--- Delete a file or folder
-function M.delete()
-    -- TODO: Implement delete
-    utils.notify('Delete functionality coming soon!', 'warning')
-end
-
--- Open a file or folder
-function M.open_file()
-    if not is_open or not win or not api.nvim_win_is_valid(win) then return end
-    
-    -- Get the current line
-    local line = api.nvim_get_current_line()
-    -- Remove the icon and space at the start
-    local filename = line:match('[^%s]+ (.+)$')
-    if not filename then return end
-    
-    -- Get the path relative to the .maple directory
-    local cwd = vim.fn.getcwd()
-    local full_path = vim.fn.fnamemodify(cwd .. '/.maple/' .. filename, ':p')
-    
-    -- Check if it's a directory
-    if vim.fn.isdirectory(full_path) == 1 then
-        -- TODO: Handle directory navigation
-        utils.notify('Directory navigation coming soon!', 'info')
+function M.delete_item()
+    local item = M.current_item()
+    if not item then
         return
     end
-    
-    -- Create a new vertical split to the right of the panel
-    vim.cmd('wincmd l')
-    vim.cmd('vsplit')
-    
-    -- Open the file in the new split
-    vim.cmd('edit ' .. vim.fn.fnameescape(full_path))
+
+    local type_name = item.is_dir and 'folder' or 'file'
+    vim.ui.input({
+        prompt = 'Delete ' .. type_name .. ' "' .. item.name .. '"? (y/N): '
+    }, function(confirm)
+        if confirm and confirm:lower() == 'y' then
+            if fs.delete_path(item.path) then
+                local id = node_id(item.path)
+                tree_state[id] = nil
+                M.refresh()
+                utils.notify('Deleted ' .. type_name .. ': ' .. item.name)
+            else
+                utils.notify('Failed to delete ' .. type_name .. ': ' .. item.name, 'error')
+            end
+        end
+    end)
 end
 
--- Show help
 function M.show_help()
     local help_lines = {
-        'Maple.nvim Help',
-        '================',
-        '<CR> - Open file/folder',
-        'a - Create new file',
-        'd - Create new directory',
-        'r - Rename file/directory',
-        'D - Delete file/directory',
-        'R - Refresh the file tree',
-        'q - Close the panel',
-        '? - Show this help',
+        '',
+        '                    Maple File Tree Help',
+        '',
+        'Navigation:',
+        '  <CR>           - Open file or toggle directory',
+        '  o              - Open file in new split',
+        '  l              - Expand directory or open file',
+        '  h              - Collapse directory or go to parent',
+        '  P              - Go to parent directory',
+        '',
+        'Tree Operations:',
+        '  E              - Expand all directories',
+        '  W              - Collapse all directories',
+        '  r              - Refresh tree',
+        '',
+        'File Operations:',
+        '  a              - Create new file',
+        '  A              - Create new directory',
+        '  d              - Delete file/directory',
+        '',
+        'Other:',
+        '  q              - Close file tree',
+        '  g?             - Show this help',
+        '',
+        'Press any key to close this help...',
+        ''
     }
-    
-    -- Create a floating window to display help
-    local width = 40
-    local height = #help_lines + 2
-    local row = (vim.o.lines - height) / 2
-    local col = (vim.o.columns - width) / 2
-    
-    local help_buf = api.nvim_create_buf(false, true)
-    local help_win = api.nvim_open_win(help_buf, true, {
+
+    local help_buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_option(help_buf, 'buftype', 'nofile')
+    vim.api.nvim_buf_set_option(help_buf, 'swapfile', false)
+    vim.api.nvim_buf_set_option(help_buf, 'modifiable', false)
+    vim.api.nvim_buf_set_lines(help_buf, 0, -1, false, help_lines)
+
+    local width = 60
+    local height = #help_lines
+    local help_win = vim.api.nvim_open_win(help_buf, true, {
         relative = 'editor',
         width = width,
         height = height,
-        row = row,
-        col = col,
+        col = (vim.o.columns - width) / 2,
+        row = (vim.o.lines - height) / 2,
         style = 'minimal',
-        border = 'single',
+        border = 'rounded',
         title = ' Maple Help ',
-        title_pos = 'center',
+        title_pos = 'center'
     })
-    
-    api.nvim_buf_set_lines(help_buf, 0, -1, false, help_lines)
-    api.nvim_buf_set_option(help_buf, 'modifiable', false)
-    
-    -- Close help window when pressing q or <Esc>
-    api.nvim_buf_set_keymap(help_buf, 'n', 'q', '<cmd>close<CR>', {noremap = true, silent = true})
-    api.nvim_buf_set_keymap(help_buf, 'n', '<Esc>', '<cmd>close<CR>', {noremap = true, silent = true})
-    
-    -- Return focus to the panel
-    vim.schedule(function()
-        if win and api.nvim_win_is_valid(win) then
-            api.nvim_set_current_win(win)
+
+    vim.api.nvim_win_set_option(help_win, 'winhl', 'Normal:Normal,FloatBorder:FloatBorder')
+
+    vim.keymap.set('n', '<Esc>', function()
+        vim.api.nvim_win_close(help_win, true)
+    end, { buffer = help_buf, silent = true })
+
+    vim.keymap.set('n', '<CR>', function()
+        vim.api.nvim_win_close(help_win, true)
+    end, { buffer = help_buf, silent = true })
+
+    vim.keymap.set('n', 'q', function()
+        vim.api.nvim_win_close(help_win, true)
+    end, { buffer = help_buf, silent = true })
+
+    local group = vim.api.nvim_create_augroup('MapleHelp', { clear = true })
+    vim.api.nvim_create_autocmd('BufWipeout', {
+        group = group,
+        buffer = help_buf,
+        callback = function()
+            if vim.api.nvim_win_is_valid(help_win) then
+                vim.api.nvim_win_close(help_win, true)
+            end
         end
-    end)
+    })
 end
 
 return M
