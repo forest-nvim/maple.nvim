@@ -1,0 +1,31 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/lua-language-server/master/schema/language-configuration.json",
+  "runtime": {
+    "version": "LuaJIT",
+    "path": [
+      "?.lua",
+      "?/init.lua",
+      "lua/?.lua",
+      "lua/?/init.lua"
+    ]
+  },
+  "diagnostics": {
+    "globals": [
+      "vim"
+    ],
+    "disable": [
+      "lowercase-global"
+    ]
+  },
+  "workspace": {
+    "library": [
+      "${3rd}/luv/library",
+      "${3rd}/luv/library/",
+      "/opt/homebrew/opt/luvit/lib"
+    ],
+    "checkThirdParty": false
+  },
+  "type": {
+    "castNumberToInteger": true
+  }
+}

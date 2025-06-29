@@ -44,40 +44,47 @@ local function create_win()
     api.nvim_win_set_option(win, 'relativenumber', false)
     api.nvim_win_set_option(win, 'wrap', false)
     api.nvim_win_set_option(win, 'winfixwidth', true)  -- Keep width when closing other splits
+    api.nvim_win_set_option(win, 'signcolumn', 'no')   -- Disable sign column for better performance
+    api.nvim_win_set_option(win, 'cursorline', false)  -- Disable cursor line for better performance
+    
+    -- Only set up keymaps if they haven't been set up yet
+    if not vim.b._maple_keymaps_set then
+        -- Set up keymaps
+        local keymaps = config.options.keymaps
+        for action, key in pairs(keymaps) do
+            if action ~= 'toggle' then
+                api.nvim_buf_set_keymap(buf, 'n', key, '', {
+                    noremap = true,
+                    silent = true,
+                    callback = function()
+                        M[action](M)
+                    end,
+                    desc = 'Maple: ' .. action:gsub('_', ' ')
+                })
+            end
+        end
+        
+        -- Add help keymap
+        api.nvim_buf_set_keymap(buf, 'n', '?', '', {
+            noremap = true,
+            silent = true,
+            callback = M.show_help,
+            desc = 'Maple: Show help'
+        })
+        
+        -- Add default keymap for opening files
+        api.nvim_buf_set_keymap(buf, 'n', '<CR>', '', {
+            noremap = true,
+            silent = true,
+            callback = M.open_file,
+            desc = 'Maple: Open file/folder'
+        })
+        
+        vim.b._maple_keymaps_set = true
+    end
     
     -- Return to the original window
     api.nvim_set_current_win(current_win)
-    
-    -- Set up keymaps
-    local keymaps = config.options.keymaps
-    for action, key in pairs(keymaps) do
-        if action ~= 'toggle' then
-            api.nvim_buf_set_keymap(buf, 'n', key, '', {
-                noremap = true,
-                silent = true,
-                callback = function()
-                    M[action](M)
-                end,
-                desc = 'Maple: ' .. action:gsub('_', ' ')
-            })
-        end
-    end
-    
-    -- Add help keymap
-    api.nvim_buf_set_keymap(buf, 'n', '?', '', {
-        noremap = true,
-        silent = true,
-        callback = M.show_help,
-        desc = 'Maple: Show help'
-    })
-    
-    -- Add default keymap for opening files
-    api.nvim_buf_set_keymap(buf, 'n', '<CR>', '', {
-        noremap = true,
-        silent = true,
-        callback = M.open_file,
-        desc = 'Maple: Open file/folder'
-    })
     
     return win
 end
@@ -113,16 +120,26 @@ end
 
 -- Open the panel
 function M.open()
-    if not is_open then
-        -- Always create a new buffer to avoid conflicts
-        if buf and api.nvim_buf_is_valid(buf) then
-            api.nvim_buf_delete(buf, { force = true })
-        end
-        create_buf()
-        create_win()
-        M.refresh()
-        is_open = true
+    -- If panel is already open, just focus it
+    if is_open and win and api.nvim_win_is_valid(win) then
+        api.nvim_set_current_win(win)
+        return
     end
+    
+    -- Create new buffer if needed
+    if not buf or not api.nvim_buf_is_valid(buf) then
+        buf = create_buf()
+    end
+    
+    -- Create window if needed
+    if not win or not api.nvim_win_is_valid(win) then
+        create_win()
+    end
+    
+    -- Refresh content and set focus
+    M.refresh()
+    is_open = true
+    api.nvim_set_current_win(win)
 end
 
 -- Focus the panel
@@ -139,10 +156,11 @@ end
 function M.refresh()
     if not buf or not api.nvim_buf_is_valid(buf) then return end
     
-    -- Get the notes directory from config
-    local notes_dir = config.options.notes_dir
+    -- Get the current working directory
+    local cwd = vim.fn.getcwd()
+    local notes_dir = cwd .. '/.maple'
     
-    -- Create notes directory if it doesn't exist
+    -- Create .maple directory if it doesn't exist
     if not vim.fn.isdirectory(notes_dir) then
         vim.fn.mkdir(notes_dir, 'p')
     end
@@ -157,22 +175,70 @@ function M.refresh()
         table.insert(lines, icon .. ' ' .. file.name)
     end
     
-    -- Update buffer
-    api.nvim_buf_set_option(buf, 'modifiable', true)
-    api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-    api.nvim_buf_set_option(buf, 'modifiable', false)
+    -- Only update if content has changed
+    local current_lines = api.nvim_buf_get_lines(buf, 0, -1, false)
+    local current_content = table.concat(current_lines, '\n')
+    local new_content = table.concat(lines, '\n')
+    
+    if current_content ~= new_content then
+        -- Update buffer
+        api.nvim_buf_set_option(buf, 'modifiable', true)
+        api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+        api.nvim_buf_set_option(buf, 'modifiable', false)
+    end
 end
 
 -- Create a new file
 function M.create_file()
-    -- TODO: Implement file creation
-    utils.notify('Create file functionality coming soon!', 'info')
+    -- Get the current working directory
+    local cwd = vim.fn.getcwd()
+    local notes_dir = cwd .. '/.maple'
+    
+    -- Ensure the .maple directory exists
+    if not vim.fn.isdirectory(notes_dir) then
+        vim.fn.mkdir(notes_dir, 'p')
+    end
+    
+    -- Prompt for file name
+    vim.ui.input({prompt = 'File name: '}, function(input)
+        if not input or input == '' then return end
+        
+        -- Create the file in the .maple directory
+        local file_path = notes_dir .. '/' .. input
+        local fd = vim.loop.fs_open(file_path, 'w', 420) -- 0644 permissions
+        if fd then
+            vim.loop.fs_close(fd)
+            M.refresh()
+        else
+            utils.notify('Failed to create file: ' .. file_path, 'error')
+        end
+    end)
 end
 
 -- Create a new folder
 function M.create_folder()
-    -- TODO: Implement folder creation
-    utils.notify('Create folder functionality coming soon!', 'info')
+    -- Get the current working directory
+    local cwd = vim.fn.getcwd()
+    local notes_dir = cwd .. '/.maple'
+    
+    -- Ensure the .maple directory exists
+    if not vim.fn.isdirectory(notes_dir) then
+        vim.fn.mkdir(notes_dir, 'p')
+    end
+    
+    -- Prompt for folder name
+    vim.ui.input({prompt = 'Folder name: '}, function(input)
+        if not input or input == '' then return end
+        
+        -- Create the folder in the .maple directory
+        local folder_path = notes_dir .. '/' .. input
+        local success = vim.fn.mkdir(folder_path, 'p')
+        if success == 1 then
+            M.refresh()
+        else
+            utils.notify('Failed to create folder: ' .. folder_path, 'error')
+        end
+    end)
 end
 
 -- Rename a file or folder
@@ -197,7 +263,9 @@ function M.open_file()
     local filename = line:match('[^%s]+ (.+)$')
     if not filename then return end
     
-    local full_path = vim.fn.fnamemodify(config.options.notes_dir .. '/' .. filename, ':p')
+    -- Get the path relative to the .maple directory
+    local cwd = vim.fn.getcwd()
+    local full_path = vim.fn.fnamemodify(cwd .. '/.maple/' .. filename, ':p')
     
     -- Check if it's a directory
     if vim.fn.isdirectory(full_path) == 1 then

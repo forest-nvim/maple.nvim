@@ -40,11 +40,12 @@ function M.scan_directory(path)
         local full_path = Path:new(path, name):absolute()
         local is_dir = type == 'directory'
         local is_empty = is_dir and M.is_dir_empty(full_path)
+        local file_type = type or 'file'  -- Default to 'file' if type is nil
         
         table.insert(files, {
             name = name,
             path = full_path,
-            type = type,
+            type = file_type,
             is_dir = is_dir,
             is_empty = is_empty,
             extension = name:match('%.([^%.]+)$') or ''
