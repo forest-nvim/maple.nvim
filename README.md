@@ -1,78 +1,128 @@
-# maple.nvim
+# maple.nvim 🌴
 
-A simple Neovim plugin for managing project and system based notes
-![image](https://github.com/user-attachments/assets/62cb554c-ac8c-4973-a20d-76bf7440a0d2)
+A modern Neovim plugin for managing notes with a side panel file tree interface, storing all notes in a central location.
+
+![Screenshot](https://github.com/forest-nvim/maple.nvim/blob/main/assets/screenshot.png?raw=true)
+
+## Features
+
+- 📂 Side panel file tree for easy navigation
+- 🏠 Centralized notes storage in `~/.local/share/nvim/maple/notes`
+- 🎨 Customizable appearance and keybinds
+- 📝 Markdown support with syntax highlighting
+- 🚀 Built with plenary.nvim for reliability
 
 ## Installation
 
-Using [packer.nvim](https://github.com/wbthomason/packer.nvim):
-
-```lua
-use({
-  'forest-nvim/maple.nvim',
-  config = function()
-    require('maple').setup({
-      -- Your configuration options here
-    })
-  end
-})
-```
-
-Using [lazy.nvim](https://github.com/folke/lazy.nvim):
+Using [lazy.nvim](https://github.com/folke/lazy.nvim) (recommended):
 
 ```lua
 {
   'forest-nvim/maple.nvim',
+  dependencies = {
+    'nvim-lua/plenary.nvim',
+    'nvim-tree/nvim-web-devicons',  -- optional, for file icons
+  },
   opts = {
-      -- Your configuration options here
-    }
+    -- Your configuration here
+  }
 }
 ```
 
-## Features
+Using [packer.nvim](https://github.com/wbthomason/packer.nvim):
 
-- Project Based notes (Based on git repository, falls back to directory of folder)
-- Global notes that persist no matter what directory you are in.
-- Fully configurable keybinds
-- Customizable appearance
+```lua
+use {
+  'forest-nvim/maple.nvim',
+  requires = {
+    'nvim-lua/plenary.nvim',
+    'nvim-tree/nvim-web-devicons',  -- optional
+  },
+  config = function()
+    require('maple').setup({
+      -- Your configuration here
+    })
+  end
+}
+```
 
 ## Configuration
 
-Here's an example configuration with all available options:
+Default configuration with all available options:
 
 ```lua
 require('maple').setup({
-    -- Appearance
-    width = 0.6,        -- Width of the popup (ratio of the editor width)
-    height = 0.6,       -- Height of the popup (ratio of the editor height)
-    border = 'rounded', -- Border style ('none', 'single', 'double', 'rounded', etc.)
-    title = ' maple ',
-    title_pos = 'center',
-    winblend = 10,       -- Window transparency (0-100)
-    show_legend = false, -- Whether to show keybind legend in the UI
-
-    -- Storage
-    storage_path = vim.fn.stdpath('data') .. '/maple',
-
-    -- Notes management
-    notes_mode = "project",            -- "global" or "project"
-    use_project_specific_notes = true, -- Store notes by project
-
-    -- Keymaps (set to nil to disable)
+    -- Panel settings
+    width = 30,                   -- Width of the side panel
+    position = 'left',            -- 'left' or 'right'
+    auto_close = false,           -- Auto close when opening a file
+    auto_refresh = true,          -- Auto refresh the file tree
+    respect_gitignore = true,     -- Respect .gitignore files
+    
+    -- File icons
+    icons = {
+        default = '📄',
+        symlink = '🔗',
+        folder = {
+            default = '📁',
+            open = '📂',
+            empty = '📁',
+            empty_open = '📂',
+            symlink = '🔗',
+            symlink_open = '🔗',
+        },
+    },
+    
+    -- Keymaps
     keymaps = {
-        toggle = '<leader>m',      -- Key to toggle Maple
-        close = 'q',               -- Key to close the window
-        switch_mode = 'm',         -- Key to switch between global and project view
-    }
+        toggle = '<leader>m',     -- Toggle the side panel
+        create_file = 'a',        -- Create a new file
+        create_folder = 'd',      -- Create a new folder
+        rename = 'r',             -- Rename a file/folder
+        delete = 'D',             -- Delete a file/folder
+        close = 'q',              -- Close the panel
+        refresh = 'R',            -- Refresh the file tree
+    },
+    
+    -- Notes management
+    notes_dir = vim.fn.stdpath('data') .. '/maple/notes',  -- Central notes directory
+    
+    -- UI
+    highlight_opened_files = true,
+    hide_dotfiles = true,
+    diagnostics = {
+        enable = true,
+        show_on_dirs = true,
+    },
 })
 ```
 
-### Keybinds
+## Commands
 
-The plugin does not set any default keybinds. You must configure them in your setup function. Here are the available keybinds:
+- `:MapleToggle` - Toggle the notes panel
+- `:MapleFocus` - Focus the notes panel
+- `:MapleFindFile` - Find and open a note file
+- `:MapleNewFile` - Create a new note
 
-- `toggle`: Opens/closes the Maple window
-- `close`: Closes the Maple window
-- `switch_mode`: Toggles between global and project notes
+## Keymaps
 
-Contributions and Ideas are always welcome!
+When the side panel is focused:
+
+- `o` - Open file/folder
+- `a` - Create new file
+- `d` - Create new directory
+- `r` - Rename file/directory
+- `D` - Delete file/directory
+- `R` - Refresh the file tree
+- `q` - Close the panel
+- `?` - Show help
+
+## Requirements
+
+- Neovim 0.8.0 or higher
+- nvim-lua/plenary.nvim
+- nvim-tree/nvim-web-devicons (optional, for file icons)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
