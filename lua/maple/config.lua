@@ -1,7 +1,7 @@
 local M = {}
 
 M.width = 35
-M.notes_dir = vim.fn.stdpath('data') .. '/maple/notes'
+M.notes_dir = vim.fn.stdpath('data') .. '/maple/notes/'
 
 M.icons = {
     folder = '📁',

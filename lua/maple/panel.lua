@@ -37,13 +37,6 @@ local function set_expanded(path, expanded)
     tree_state[id].expanded = expanded
 end
 
-local function get_depth(path, root_path)
-    local relative_path = path:sub(#root_path + 1)
-    if relative_path == '' then return 0 end
-    local _, depth = relative_path:gsub('[^/]+', '')
-    return depth
-end
-
 local function parent_path(path)
     return path:match('(.*)/[^/]+$') or path
 end
