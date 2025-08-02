@@ -76,3 +76,10 @@ The plugin does not set any default keybinds. You must configure them in your se
 - `switch_mode`: Toggles between global and project notes
 
 Contributions and Ideas are always welcome!
+
+## Star History
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=forest-nvim/maple.nvim&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=forest-nvim/maple.nvim&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=forest-nvim/maple.nvim&type=Date" />
+</picture>
