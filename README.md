@@ -22,7 +22,10 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
-  'forest-nvim/maple.nvim',
+  'forest-nvim/maple.nvim', 
+  dependencies = {
+    'nvim-lua/plenary.nvim',
+  },
   opts = {
       -- Your configuration options here
     }
