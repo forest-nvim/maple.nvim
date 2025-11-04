@@ -10,6 +10,9 @@ Using [packer.nvim](https://github.com/wbthomason/packer.nvim):
 ```lua
 use({
   'forest-nvim/maple.nvim',
+  requires = {
+    'nvim-lua/plenary.nvim',
+  },
   config = function()
     require('maple').setup({
       -- Your configuration options here
@@ -22,7 +25,10 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
-  'forest-nvim/maple.nvim',
+  'forest-nvim/maple.nvim', 
+  dependencies = {
+    'nvim-lua/plenary.nvim',
+  },
   opts = {
       -- Your configuration options here
     }
