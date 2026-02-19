@@ -9,13 +9,8 @@ local win = nil
 function M.create_buf()
 	buf = api.nvim_create_buf(false, true)
 	api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-
-	-- Set buffer to be modifiable
 	api.nvim_buf_set_option(buf, "modifiable", true)
-
-	-- Set filetype for syntax highlighting
 	api.nvim_buf_set_option(buf, "filetype", "markdown")
-
 	return buf
 end
 
@@ -25,8 +20,9 @@ function M.update_title()
 	end
 
 	local mode_text = config.options.notes_mode == "global" and "Global Notes" or "Project Notes"
+	local title = config.options.title or " maple "
 	local opts = {
-		title = string.format(" Maple Notes (%s) ", mode_text),
+		title = string.format(" %s (%s) ", vim.trim(title), mode_text),
 		title_pos = config.options.title_pos,
 	}
 	api.nvim_win_set_config(win, opts)
@@ -39,6 +35,7 @@ function M.create_win()
 	local col = math.floor((vim.o.columns - width) / 2)
 
 	local mode_text = config.options.notes_mode == "global" and "Global Notes" or "Project Notes"
+	local title = config.options.title or " maple "
 
 	local opts = {
 		relative = "editor",
@@ -48,26 +45,34 @@ function M.create_win()
 		col = col,
 		style = "minimal",
 		border = config.options.border,
-		title = string.format(" Maple Notes (%s) ", mode_text),
+		title = string.format(" %s (%s) ", vim.trim(title), mode_text),
 		title_pos = config.options.title_pos,
 	}
 
 	win = api.nvim_open_win(buf, true, opts)
-	api.nvim_win_set_option(win, "winblend", config.options.winblend)
 
-	-- Enable wrapping for better note editing
+	-- Set up highlights
+	local highlights = require("maple.ui.highlights")
+	highlights.setup()
+	highlights.apply_to_window(win)
+
+	api.nvim_win_set_option(win, "winblend", config.options.winblend)
 	api.nvim_win_set_option(win, "wrap", true)
 	api.nvim_win_set_option(win, "linebreak", true)
 
-	-- Show line numbers
 	if config.options.relative_number then
 		api.nvim_win_set_option(win, "relativenumber", true)
 	else
 		api.nvim_win_set_option(win, "number", true)
 	end
 
-	-- Set scrolloff to keep footer visible
 	api.nvim_win_set_option(win, "scrolloff", 3)
+
+	-- Set up winbar
+	local statusline = require("maple.ui.statusline")
+	statusline.define_highlights()
+	statusline.update()
+	statusline.setup_autocommands()
 
 	return win
 end

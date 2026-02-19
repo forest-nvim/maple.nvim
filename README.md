@@ -10,9 +10,6 @@ Using [packer.nvim](https://github.com/wbthomason/packer.nvim):
 ```lua
 use({
   'forest-nvim/maple.nvim',
-  requires = {
-    'nvim-lua/plenary.nvim',
-  },
   config = function()
     require('maple').setup({
       -- Your configuration options here
@@ -25,10 +22,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
-  'forest-nvim/maple.nvim', 
-  dependencies = {
-    'nvim-lua/plenary.nvim',
-  },
+  'forest-nvim/maple.nvim',
   opts = {
       -- Your configuration options here
     }
@@ -37,49 +31,74 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ## Features
 
-- Project Based notes (Based on git repository, falls back to directory of folder)
-- Global notes that persist no matter what directory you are in.
-- Fully configurable keybinds
-- Customizable appearance
+- **Project-scoped notes** — Based on git repository, falls back to directory
+- **Global notes** — Persist no matter what directory you are in
+- **Markdown checkbox support** — Toggle `- [ ]` / `- [x]` with a keymap
+- **Telescope integration** — Search across all notes with `:MapleSearch`
+- **Configurable highlights** — Custom highlight groups for full theming control
+- **Winbar** — Mode indicator and word count in the window bar
+- **Fully configurable keybinds** — All features exposed as commands, bind them however you like
+- **Zero dependencies**
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `:MapleToggle` | Toggle the notes window |
+| `:MapleClose` | Close the notes window |
+| `:MapleSwitchMode` | Toggle between global and project notes |
+| `:MapleToggleCheckbox` | Toggle checkbox on current line |
+| `:MapleAddCheckbox` | Insert a new checkbox below cursor |
+| `:MapleSearch [grep]` | Search notes with Telescope |
 
 ## Configuration
-
-Here's an example configuration with all available options:
 
 ```lua
 require('maple').setup({
     -- Appearance
-    width = 0.6,        -- Width of the popup (ratio of the editor width)
-    height = 0.6,       -- Height of the popup (ratio of the editor height)
-    border = 'rounded', -- Border style ('none', 'single', 'double', 'rounded', etc.)
+    width = 0.6,
+    height = 0.6,
+    border = 'rounded',
     title = ' maple ',
     title_pos = 'center',
-    winblend = 10,       -- Window transparency (0-100)
-    show_legend = false, -- Whether to show keybind legend in the UI
+    winblend = 10,
+    show_winbar = true,
+    relative_number = false,
 
     -- Storage
     storage_path = vim.fn.stdpath('data') .. '/maple',
 
     -- Notes management
-    notes_mode = "project",            -- "global" or "project"
-    use_project_specific_notes = true, -- Store notes by project
+    notes_mode = "project",
+    use_project_specific_notes = true,
 
-    -- Keymaps (set to nil to disable)
-    keymaps = {
-        toggle = '<leader>m',      -- Key to toggle Maple
-        close = 'q',               -- Key to close the window
-        switch_mode = 'm',         -- Key to switch between global and project view
-    }
+    -- Custom highlight overrides
+    highlights = {},
 })
 ```
 
 ### Keybinds
 
-The plugin does not set any default keybinds. You must configure them in your setup function. Here are the available keybinds:
+The plugin does not set any keybinds. All features are exposed as commands — bind them however you like:
 
-- `toggle`: Opens/closes the Maple window
-- `close`: Closes the Maple window
-- `switch_mode`: Toggles between global and project notes
+```lua
+vim.keymap.set('n', '<leader>mt', '<cmd>MapleToggle<CR>', { desc = 'Toggle Maple Notes' })
+vim.keymap.set('n', '<leader>ms', '<cmd>MapleSwitchMode<CR>', { desc = 'Switch notes mode' })
+vim.keymap.set('n', '<leader>mc', '<cmd>MapleToggleCheckbox<CR>', { desc = 'Toggle checkbox' })
+vim.keymap.set('n', '<leader>ma', '<cmd>MapleAddCheckbox<CR>', { desc = 'Add checkbox' })
+vim.keymap.set('n', '<leader>mf', '<cmd>MapleSearch<CR>', { desc = 'Search notes' })
+vim.keymap.set('n', '<leader>mg', '<cmd>MapleSearch grep<CR>', { desc = 'Grep notes' })
+```
+
+### Telescope Integration
+
+Requires [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) (optional):
+
+```lua
+require('telescope').load_extension('maple')
+```
+
+Then use `:Telescope maple` to browse notes or `:Telescope maple grep` to search note contents.
 
 Contributions and Ideas are always welcome!
 

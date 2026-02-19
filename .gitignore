@@ -40,3 +40,6 @@ luac.out
 *.hex
 
 .DS_Store
+
+# Test dependencies
+deps/
