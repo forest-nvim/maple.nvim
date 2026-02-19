@@ -17,6 +17,7 @@ T['config']['has correct defaults'] = function()
 	MiniTest.expect.equality(config.defaults.winblend, 10)
 	MiniTest.expect.equality(config.defaults.notes_mode, "project")
 	MiniTest.expect.equality(config.defaults.use_project_specific_notes, true)
+	MiniTest.expect.equality(config.defaults.open_style, "float")
 end
 
 T['config']['setup merges user options'] = function()
@@ -30,6 +31,15 @@ T['config']['setup merges user options'] = function()
 	-- Defaults should still be present
 	MiniTest.expect.equality(config.options.height, 0.6)
 	MiniTest.expect.equality(config.options.winblend, 10)
+end
+
+T['config']['open_style can be overridden'] = function()
+	package.loaded['maple.config'] = nil
+	local config = require('maple.config')
+
+	config.setup({ open_style = "split" })
+
+	MiniTest.expect.equality(config.options.open_style, "split")
 end
 
 T['config']['deep merges nested tables'] = function()

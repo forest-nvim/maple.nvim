@@ -31,11 +31,18 @@ function M.setup()
 end
 
 --- Apply winhighlight to a window to use custom maple groups.
-function M.apply_to_window(win)
+---@param win number
+---@param style? string The open style ("float", "split", "vsplit", "buffer")
+function M.apply_to_window(win, style)
 	if not win or not api.nvim_win_is_valid(win) then
 		return
 	end
-	vim.wo[win].winhighlight = "Normal:MapleNormal,FloatBorder:MapleBorder,FloatTitle:MapleTitle"
+
+	if style == "float" then
+		vim.wo[win].winhighlight = "Normal:MapleNormal,FloatBorder:MapleBorder,FloatTitle:MapleTitle"
+	else
+		vim.wo[win].winhighlight = "Normal:MapleNormal"
+	end
 end
 
 return M

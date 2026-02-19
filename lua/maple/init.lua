@@ -30,20 +30,37 @@ local function setup_autosave()
 			storage.save_notes({ content = content })
 		end,
 	})
+
+	api.nvim_create_autocmd("BufWipeout", {
+		group = save_augroup,
+		buffer = buf,
+		callback = function()
+			window.reset()
+		end,
+	})
 end
 
-function M.toggle()
+local function is_open()
+	local win = window.get_win()
+	local buf = window.get_buf()
+	return win
+		and api.nvim_win_is_valid(win)
+		and buf
+		and api.nvim_buf_is_valid(buf)
+		and api.nvim_win_get_buf(win) == buf
+end
+
+function M.toggle(style_override)
 	ensure_setup()
 
-	local win = window.get_win()
-	if win and api.nvim_win_is_valid(win) then
+	if is_open() then
 		M.close()
 		return
 	end
 
 	local notes = storage.load_notes()
 	window.create_buf()
-	window.create_win()
+	window.create_win(style_override)
 
 	local buf = window.get_buf()
 	api.nvim_buf_set_option(buf, 'modifiable', true)

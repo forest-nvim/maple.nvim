@@ -11,6 +11,7 @@ M.defaults = {
 	winblend = 10,
 	show_winbar = true,
 	relative_number = false,
+	open_style = "float", -- "float", "split", "vsplit", or "buffer"
 
 	-- Storage
 	storage_path = vim.fn.stdpath("data") .. "/maple",

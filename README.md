@@ -44,7 +44,11 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 | Command | Description |
 |---|---|
-| `:MapleToggle` | Toggle the notes window |
+| `:MapleToggle` | Toggle the notes window (uses configured `open_style`) |
+| `:MapleToggleFloat` | Toggle notes in a floating window |
+| `:MapleToggleSplit` | Toggle notes in a horizontal split |
+| `:MapleToggleVsplit` | Toggle notes in a vertical split |
+| `:MapleToggleBuffer` | Toggle notes in the current buffer |
 | `:MapleClose` | Close the notes window |
 | `:MapleSwitchMode` | Toggle between global and project notes |
 | `:MapleToggleCheckbox` | Toggle checkbox on current line |
@@ -64,6 +68,7 @@ require('maple').setup({
     winblend = 10,
     show_winbar = true,
     relative_number = false,
+    open_style = 'float', -- 'float', 'split', 'vsplit', or 'buffer'
 
     -- Storage
     storage_path = vim.fn.stdpath('data') .. '/maple',
@@ -83,6 +88,9 @@ The plugin does not set any keybinds. All features are exposed as commands — b
 
 ```lua
 vim.keymap.set('n', '<leader>mt', '<cmd>MapleToggle<CR>', { desc = 'Toggle Maple Notes' })
+vim.keymap.set('n', '<leader>mh', '<cmd>MapleToggleSplit<CR>', { desc = 'Toggle notes in split' })
+vim.keymap.set('n', '<leader>mv', '<cmd>MapleToggleVsplit<CR>', { desc = 'Toggle notes in vsplit' })
+vim.keymap.set('n', '<leader>mb', '<cmd>MapleToggleBuffer<CR>', { desc = 'Toggle notes in buffer' })
 vim.keymap.set('n', '<leader>ms', '<cmd>MapleSwitchMode<CR>', { desc = 'Switch notes mode' })
 vim.keymap.set('n', '<leader>mc', '<cmd>MapleToggleCheckbox<CR>', { desc = 'Toggle checkbox' })
 vim.keymap.set('n', '<leader>ma', '<cmd>MapleAddCheckbox<CR>', { desc = 'Add checkbox' })
