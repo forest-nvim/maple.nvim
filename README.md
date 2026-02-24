@@ -1,7 +1,10 @@
 # maple.nvim
 
 A simple Neovim plugin for managing project and system based notes
-![image](https://github.com/user-attachments/assets/62cb554c-ac8c-4973-a20d-76bf7440a0d2)
+<img width="1575" height="937" alt="image" src="https://github.com/user-attachments/assets/33954ad6-fc90-49b0-bf3c-211e89bd2cb6" />
+<img width="1572" height="934" alt="image" src="https://github.com/user-attachments/assets/8255c69e-e44b-4c57-a9ba-ba14f68df90f" />
+<img width="1580" height="933" alt="image" src="https://github.com/user-attachments/assets/2882087a-7438-4404-80dd-0316280fae04" />
+
 
 ## Installation
 
