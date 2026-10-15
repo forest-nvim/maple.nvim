@@ -34,4 +34,4 @@ jobs:
         run: sudo apt-get install -y lua-check || sudo luarocks install luacheck
 
       - name: Run luacheck
-        run: luacheck lua/ --globals vim --no-max-line-length || true
+        run: luacheck lua/ plugin/ --globals vim --no-max-line-length || true
