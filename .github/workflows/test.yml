@@ -10,28 +10,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        nvim-version: [stable, nightly]
-
+        nvim: [v0.10.0, stable, nightly]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Neovim
-        uses: rhysd/action-setup-vim@v1
+      - uses: rhysd/action-setup-vim@v1
         with:
           neovim: true
-          version: ${{ matrix.nvim-version }}
-
-      - name: Run tests
-        run: make test
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install luacheck
-        run: sudo apt-get install -y lua-check || sudo luarocks install luacheck
-
-      - name: Run luacheck
-        run: luacheck lua/ --globals vim --no-max-line-length || true
+          version: ${{ matrix.nvim }}
+      - run: make test

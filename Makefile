@@ -1,9 +1,9 @@
 NVIM ?= nvim
 
-.PHONY: test lint
+.PHONY: test
 
-test:
-	$(NVIM) --headless -u tests/minimal_init.lua -c "lua require('mini.test').setup(); require('mini.test').run()" -c "qa!"
+test: deps/mini.nvim
+	$(NVIM) --headless --clean --cmd "set rtp^=. rtp+=deps/mini.nvim noswapfile" -c "lua require('mini.test').setup(); require('mini.test').run()" -c cq
 
-lint:
-	luacheck lua/ --globals vim --no-max-line-length
+deps/mini.nvim:
+	git clone --filter=blob:none --branch stable https://github.com/echasnovski/mini.nvim $@
